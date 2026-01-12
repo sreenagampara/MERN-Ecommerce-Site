@@ -69,3 +69,13 @@ npm run dev
 # Author
 
 Sreekanth MR
+
+
+## Screenshot
+
+
+<img width="1909" height="859" alt="Screenshot-homepage" src="https://github.com/user-attachments/assets/aceb8fb6-d73c-4eb3-9d20-6cadeddef4d6" />
+
+
+
+<img width="1898" height="624" alt="Screenshot-homepage-1" src="https://github.com/user-attachments/assets/45d90e48-3f5f-47db-bcac-529dc1e00746" />
