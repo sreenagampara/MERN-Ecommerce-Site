@@ -66,10 +66,6 @@ npm install
 npm run dev
 
 
-# Author
-
-Sreekanth MR
-
 
 ## Screenshot
 
@@ -79,3 +75,8 @@ Sreekanth MR
 
 
 <img width="1898" height="624" alt="Screenshot-homepage-1" src="https://github.com/user-attachments/assets/45d90e48-3f5f-47db-bcac-529dc1e00746" />
+
+
+# Author
+
+# Sreekanth MR
