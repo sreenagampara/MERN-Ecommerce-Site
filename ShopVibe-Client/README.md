@@ -1,73 +1,63 @@
-# React + TypeScript + Vite
+# 🛒 ShopVibe Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+[![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 
-Currently, two official plugins are available:
+The official frontend for **ShopVibe**, a modern e-commerce experience. Built with React and TypeScript for type-safety, and Vite for lightning-fast development.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+[✨ Live Demo Link] | [📂 Backend Repo](link-to-your-backend)
 
-## React Compiler
+---
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Key Features
+- **User Experience:** Smooth transitions with `Framer Motion` and responsive design via `Tailwind CSS`.
+- **State Management:** Context API for global cart and user state.
+- **Security:** Protected routes for User Profiles and Checkout.
+- **Payments:** Integrated **Razorpay** (supports Test and Live modes).
+- **Reliability:** Error boundary handling and API loading states.
 
-## Expanding the ESLint configuration
+## 🛠️ Tech Stack
+- **Core:** React 18, TypeScript, Vite
+- **Routing:** React Router 6
+- **Styling:** Tailwind CSS, Framer Motion
+- **API Handling:** Axios
+- **Testing:** React Testing Library
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## ⚙️ Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 1. Environment Variables
+Create a `.env` file in the `client` directory:
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+VITE_BACKEND_URL=[https://your-backend.onrender.com](https://your-backend.onrender.com)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+VITE_RAZORPAY_KEY_ID=your_razorpay_key_id
+
+
+### 2.Scripts
+
+#### Install dependencies: 
+npm install
+
+#### Start development server: 
+npm run dev
+
+#### Run tests: 
+npm test
+
+# Build for production
+npm run build
+
+
+# 📷 Screenshots
+
+<img width="1909" height="859" alt="Screenshot-homepage" src="https://github.com/user-attachments/assets/62106d87-bb20-4503-a89c-d12491869869" />
+
+<img width="1898" height="624" alt="Screenshot-homepage-1" src="https://github.com/user-attachments/assets/69690988-adfd-4766-b91a-9bc73e9d3b31" />
+
+
