@@ -2,6 +2,7 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContextInstance";
 import axios from "axios";
+import myLog from "../asset/Logo.png"
 
 interface SearchProduct {
   _id: string;
@@ -65,7 +66,7 @@ export default function Header() {
           <Link
             to="/"
           >
-            <img src="./src/asset/Logo.png" className="h-18 w-auto"/>
+            <img src={myLog} className="h-18 w-auto"/>
           </Link>
         </div>
 
