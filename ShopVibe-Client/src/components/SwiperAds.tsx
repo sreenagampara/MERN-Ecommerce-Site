@@ -22,6 +22,7 @@ export default function AdBlock() {
   const navigate = useNavigate();
   const appContext = useContext(AppContext)
   const BackendUrl =appContext?.BackendUrl
+  
 
   useEffect(() => {
     async function fetchAds() {
@@ -36,9 +37,11 @@ export default function AdBlock() {
       }
     }
     fetchAds();
-  }, []);
+  }, [BackendUrl]);
 
   const sectionOneAds = ads.filter((ad) => ad.section === "1");
+  const enableLoop = sectionOneAds.length > 1;
+
 
   if(!appContext){
     return null;
@@ -54,8 +57,8 @@ export default function AdBlock() {
           delay: 3000,
           disableOnInteraction: false,
         }}
-        loop={true}
-        onAutoplayTimeLeft={(swiper: SwiperType, time: number, progress: number) => {
+        loop={enableLoop}
+        onAutoplayTimeLeft={(_swiper: SwiperType, _time: number, progress: number) => {
           if (progressRef.current) {
             progressRef.current.style.width = `${(1 - progress) * 100}%`;
           }
