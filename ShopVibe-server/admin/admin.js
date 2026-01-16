@@ -8,24 +8,37 @@ import Admin from "../models/adminModel.js";
 import Ad from "../models/adModel.js";
 import { canManage } from "./rolePermissions.js";
 import bcrypt from "bcryptjs";
-import axios from "axios";
-import fs from "fs";
-import FormData from "form-data";
-import path from 'path';
-import { fileURLToPath } from 'url';
+import path from "path";
+import { fileURLToPath } from "url";
 import dotenv from "dotenv";
 
 dotenv.config();
-
-const BACK_END_URL = process.env.BACK_END_URL;
-
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 AdminJS.registerAdapter(AdminJSMongoose);
+
 const componentLoader = new ComponentLoader();
-const FILE_UPLOAD_COMPONENT = componentLoader.add('FileUpload',path.join(__dirname,"../components/FileUpload.jsx"))
+
+const FILE_UPLOAD_COMPONENT = componentLoader.add(
+  "FileUpload",
+  path.join(__dirname, "../components/FileUpload.jsx")
+);
+
+const handleCloudinaryUpload = async (file, folder) => {
+  if (!file || !file.path) return null;
+  try {
+    const uploadResponse = await cloudinary.uploader.upload(file.path, {
+      folder: folder,
+      resource_type: "auto",
+    });
+    return uploadResponse.secure_url;
+  } catch (error) {
+    console.error(`Cloudinary ${folder} Upload Error:`, error);
+    throw new Error("Failed to upload image to cloud storage.");
+  }
+};
 
 const adminJs = new AdminJS({
   componentLoader,
@@ -41,22 +54,62 @@ const adminJs = new AdminJS({
     },
   },
   rootPath: "/admin",
-  locale: {
-    translations: {
-      labels: {
-        Order: "Orders",
-      },
-      actions: {
-        approve: "Approve",
-        ship: "Ship",
+  resources: [
+    {
+      resource: Admin,
+      options: {
+        navigation: "System",
+        // RESTORED: Only SUPER_ADMIN can see the Admin resource
+        isAccessible: ({ currentAdmin }) =>
+          currentAdmin?.role === "SUPER_ADMIN",
+        properties: {
+          password: { type: "password" },
+        },
+        actions: {
+          list: {
+            isAccessible: ({ currentAdmin }) =>
+              currentAdmin?.role === "SUPER_ADMIN",
+          },
+          new: {
+            before: async (request) => {
+              if (request.payload.password) {
+                request.payload.password = await bcrypt.hash(
+                  request.payload.password,
+                  10
+                );
+              }
+              return request;
+            },
+            isAccessible: ({ currentAdmin }) =>
+              currentAdmin?.role === "SUPER_ADMIN",
+          },
+          edit: {
+            before: async (request) => {
+              if (request.payload.password) {
+                request.payload.password = await bcrypt.hash(
+                  request.payload.password,
+                  10
+                );
+              } else {
+                delete request.payload.password;
+              }
+              return request;
+            },
+            isAccessible: ({ currentAdmin }) =>
+              currentAdmin?.role === "SUPER_ADMIN",
+          },
+          delete: {
+            isAccessible: ({ currentAdmin }) =>
+              currentAdmin?.role === "SUPER_ADMIN",
+          },
+        },
       },
     },
-  },
-  resources: [
     {
       resource: Product,
       options: {
         navigation: "Shop",
+        // RESTORED: Use rolePermissions.js to check access
         isAccessible: ({ currentAdmin }) =>
           canManage(currentAdmin?.role, "Product"),
         properties: {
@@ -64,192 +117,104 @@ const adminJs = new AdminJS({
             type: "file",
             isVirtual: true,
             isVisible: { list: false, edit: true, new: true, show: false },
-            components:{edit:FILE_UPLOAD_COMPONENT},
+            components: { edit: FILE_UPLOAD_COMPONENT },
           },
-
-          imageUrl: {
-            isVisible: { list: true, edit: false, show: true },
-          },
-          
+          imageUrl: { isVisible: { list: true, edit: false, show: true } },
         },
-
         actions: {
+          // RESTORED: 'new' and 'edit' are explicitly enabled and checked
           new: {
             formidable: true,
             isAccessible: ({ currentAdmin }) =>
               canManage(currentAdmin?.role, "Product"),
             before: async (request) => {
               if (request.payload?.imageFile) {
-                const {path,name,type} = request.payload.imageFile;
-
-                const formData = new FormData();
-                formData.append("image", fs.createReadStream(path),
-             {
-              filename:name,
-              contentType:type,
-             }
-              );
-
-                const responce = await axios.post(
-                 BACK_END_URL+"/api/upload/upload-product-image",
-                  formData,
-                  {
-                    headers: formData.getHeaders()
-                  }
+                request.payload.imageUrl = await handleCloudinaryUpload(
+                  request.payload.imageFile,
+                  "products"
                 );
-
-                request.payload.imageUrl = responce.data.imageUrl;
                 delete request.payload.imageFile;
               }
               return request;
             },
-            after: async (responce) => {
-              console.log("Image uploaded successfully");
-              return responce;
-            },
           },
-
           edit: {
-            formidable:true,
+            formidable: true,
             isAccessible: ({ currentAdmin }) =>
               canManage(currentAdmin?.role, "Product"),
-            before:async(request)=>{
-              if(request.payload?.imageFile){
-                const{path,name,type}=request.payload.imageFile;
-                
-                const formData=new FormData();
-                formData.append(
-                  "image",
-                  fs.createReadStream(path),
-                  {
-                    filename:name,
-                    contentType:type,
-                  }
+            before: async (request) => {
+              if (request.payload?.imageFile) {
+                request.payload.imageUrl = await handleCloudinaryUpload(
+                  request.payload.imageFile,
+                  "products"
                 );
-                const response=await axios.post(BACK_END_URL+"/api/upload/upload-product-image",
-                  formData,
-                  {headers:formData.getHeaders()}
-                );
-                request.payload.imageUrl=response.data.imageUrl;
                 delete request.payload.imageFile;
               }
               return request;
-            }
+            },
           },
-
-          delete: {
-            isAccessible: ({ currentAdmin }) =>
-              canManage(currentAdmin?.role, "Product"),
-          },
-          bulkDelete: {
-            isAccessible: ({ currentAdmin }) =>
-              canManage(currentAdmin?.role, "Product"),
-          },
-
           list: {
             isAccessible: ({ currentAdmin }) =>
               canManage(currentAdmin?.role, "Product"),
           },
-
           show: {
+            isAccessible: ({ currentAdmin }) =>
+              canManage(currentAdmin?.role, "Product"),
+          },
+          delete: {
             isAccessible: ({ currentAdmin }) =>
               canManage(currentAdmin?.role, "Product"),
           },
         },
       },
     },
-
     {
       resource: Ad,
       options: {
-        navigation: "Ad",
+        navigation: "Marketing",
         isAccessible: ({ currentAdmin }) => canManage(currentAdmin?.role, "Ad"),
         properties: {
           adImage: {
             type: "file",
             isVirtual: true,
-            isVisible: { list: false, edit: true, new: true,  show: false, },
-            label: "Ad image",
-            components:{edit:FILE_UPLOAD_COMPONENT}
+            isVisible: { list: false, edit: true, new: true, show: false },
+            label: "Ad Image",
+            components: { edit: FILE_UPLOAD_COMPONENT },
           },
           imageUrl: { isVisible: { list: true, edit: false, show: true } },
         },
         actions: {
-          list: {
-            isAccessible: ({ currentAdmin }) =>
-              canManage(currentAdmin?.role, "Ad"),
-          },
-          show: {
-            isAccessible: ({ currentAdmin }) =>
-              canManage(currentAdmin?.role, "Ad"),
-          },
           new: {
             formidable: true,
             isAccessible: ({ currentAdmin }) =>
               canManage(currentAdmin?.role, "Ad"),
             before: async (request) => {
               if (request.payload?.adImage) {
-                const {path,name,type} = request.payload.adImage;
-
-                const formData = new FormData();
-                formData.append("image", fs.createReadStream(path),{
-                  filename:name,
-                  contentType:type,
-                });
-
-                const responce = await axios.post(
-                  BACK_END_URL+"/api/upload/upload-ad-image",
-                  formData,
-                  {
-                    headers: formData.getHeaders()
-                  }
+                request.payload.imageUrl = await handleCloudinaryUpload(
+                  request.payload.adImage,
+                  "ads"
                 );
-
-                request.payload.imageUrl = responce.data.imageUrl;
                 delete request.payload.adImage;
               }
               return request;
-            },
-            after: async (responce) => {
-              console.log("Image uploaded successfully");
-              return responce;
             },
           },
           edit: {
             formidable: true,
             isAccessible: ({ currentAdmin }) =>
               canManage(currentAdmin?.role, "Ad"),
-            before:async(request)=>{
-                if (request.payload?.adImage) {
-              const{path,name,type}=request.payload.adImage;
-
-              const formData=new FormData();
-              formData.append(
-                "image",
-                fs.createReadStream(path),
-                {
-                  filename:name,
-                  contentType:type,
-                }
-              );
-
-              const responce=await axios.post(
-                 BACK_END_URL+"/api/upload/upload-ad-image",
-                 formData,
-                 {headers:formData.getHeaders()}
-              );
-
-              request.payload.imageUrl=responce.data.imageUrl;
-              delete request.payload.adImage;
-            }
-            return request;
-            }
+            before: async (request) => {
+              if (request.payload?.adImage) {
+                request.payload.imageUrl = await handleCloudinaryUpload(
+                  request.payload.adImage,
+                  "ads"
+                );
+                delete request.payload.adImage;
+              }
+              return request;
+            },
           },
-          delete: {
-            isAccessible: ({ currentAdmin }) =>
-              canManage(currentAdmin?.role, "Ad"),
-          },
-          bulkDelete: {
+          list: {
             isAccessible: ({ currentAdmin }) =>
               canManage(currentAdmin?.role, "Ad"),
           },
@@ -319,77 +284,13 @@ const adminJs = new AdminJS({
       },
     },
     {
-      resource: Admin,
-      options: {
-        navigation: "Admin",
-        isAccessible: ({ currentAdmin }) =>
-          currentAdmin?.role === "SUPER_ADMIN",
-        properties: {
-          password: {
-            type: "password",
-          },
-        },
-        actions: {
-          list: {
-            isAccessible: ({ currentAdmin }) =>
-              currentAdmin?.role === "SUPER_ADMIN",
-          },
-          new: {
-            before: async (request) => {
-              if (request.payload.password) {
-                request.payload.password = await bcrypt.hash(
-                  request.payload.password,
-                  10
-                );
-              }
-
-              return request;
-            },
-            isAccessible: ({ currentAdmin }) =>
-              currentAdmin?.role === "SUPER_ADMIN",
-          },
-          edit: {
-            before: async (request) => {
-              if (request.payload.password) {
-                request.payload.password = await bcrypt.hash(
-                  request.payload.password,
-                  10
-                );
-              } else {
-                delete request.payload.password;
-              }
-              return request;
-            },
-            isAccessible: ({ currentAdmin }) =>
-              currentAdmin?.role === "SUPER_ADMIN",
-          },
-          delete: {
-            isAccessible: ({ currentAdmin }) =>
-              currentAdmin?.role === "SUPER_ADMIN",
-          },
-        },
-      },
-    },
-    {
       resource: Order,
       options: {
-        navigation: "Orders",
+        navigation: "Sales",
         isAccessible: ({ currentAdmin }) =>
           canManage(currentAdmin?.role, "Order"),
-
-        listProperties: [
-          "productName",
-          "userId",
-          "price",
-          "paymentMethod",
-          "paymentStatus",
-          "address",
-          "status",
-          "createdAt",
-        ],
         properties: {
           paymentStatus: {
-            isVisible: { list: true, filter: true, show: true, edit: true },
             availableValues: [
               { value: "PENDING", label: "Pending" },
               { value: "PAID", label: "Paid" },
@@ -405,9 +306,12 @@ const adminJs = new AdminJS({
             ],
           },
         },
-
         actions: {
           list: {
+            isAccessible: ({ currentAdmin }) =>
+              canManage(currentAdmin?.role, "Order"),
+          },
+          edit: {
             isAccessible: ({ currentAdmin }) =>
               canManage(currentAdmin?.role, "Order"),
           },
@@ -415,144 +319,16 @@ const adminJs = new AdminJS({
             isAccessible: ({ currentAdmin }) =>
               canManage(currentAdmin?.role, "Order"),
           },
-          new: {
-            isAccessible: false,
-          },
-          edit: {
-            isAccessible: ({ currentAdmin }) =>
-              canManage(currentAdmin?.role, "Order"),
-          },
-          delete: {
-            isAccessible: false,
-          },
-          bulkDelete: {
-            isAccessible: false,
-          },
-          markUnpaid: {
-            actionType: "record",
-            component: false,
-            label: "Mark Unpaid",
-            icon: "Close",
-            isAccessible: ({ currentAdmin }) =>
-              canManage(currentAdmin.role, "Order"),
-            handler: async (req, res, context) => {
-              const { record, resource, h } = context;
-              await record.update({ paymentStatus: "PENDING" });
-              return {
-                record: record.toJSON(context.currentAdmin),
-                redirectUrl: h.resourceActionUrl({
-                  resourceId: resource.id(),
-                  actionName: "list",
-                }),
-                notice: {
-                  message: "Payment status set to PENDING",
-                  type: "info",
-                },
-              };
-            },
-          },
-
-          markPaid: {
-            actionType: "record",
-            component: false,
-            label: "Mark Paid",
-            icon: "Checkmark",
-            isAccessible: ({ currentAdmin }) =>
-              canManage(currentAdmin.role, "Order"),
-            handler: async (req, res, context) => {
-              const { record, resource, h } = context;
-              await record.update({ paymentStatus: "PAID" });
-              return {
-                record: record.toJSON(context.currentAdmin),
-                redirectUrl: h.resourceActionUrl({
-                  resourceId: resource.id(),
-                  actionName: "list",
-                }),
-                notice: {
-                  message: "Payment status set to PAID",
-                  type: "success",
-                },
-              };
-            },
-          },
-          approve: {
-            actionType: "record",
-            label: "Approve & Mark Paid",
-            component: false,
-            isAccessible: ({ currentAdmin }) =>
-              canManage(currentAdmin.role, "Order"),
-            handler: async (req, res, context) => {
-              const { record, resource, h } = context;
-              await record.update({
-                status: "approved",
-                paymentStatus: "PAID",
-              });
-              return {
-                record: record.toJSON(context.currentAdmin),
-                redirectUrl: h.resourceActionUrl({
-                  resourceId: resource.id(),
-                  actionName: "list",
-                }),
-                notice: {
-                  message: "Order has been successfully approved!",
-                  type: "success",
-                },
-              };
-            },
-          },
-
-          deliver: {
-            actionType: "record",
-            component: false,
-            label: "Mark Delivered",
-            isAccessible: ({ currentAdmin }) =>
-              canManage(currentAdmin.role, "Order"),
-            handler: async (req, res, context) => {
-              const { record, resource, h } = context;
-              await record.update({ status: "delivered" });
-              return {
-                record: record.toJSON(context.currentAdmin),
-                redirectUrl: h.resourceActionUrl({
-                  resourceId: resource.id(),
-                  actionName: "list",
-                }),
-                notice: {
-                  message: "Order marked as Delivered!",
-                  type: "success",
-                },
-              };
-            },
-          },
-          ship: {
-            actionType: "record",
-            label: "Ship Order",
-            component: false,
-            isAccessible: ({ currentAdmin }) =>
-              canManage(currentAdmin.role, "Order"),
-            handler: async (req, res, context) => {
-              const { record, resource, h } = context;
-              await record.update({ status: "shipped" });
-              return {
-                record: record.toJSON(context.currentAdmin),
-                redirectUrl: h.resourceActionUrl({
-                  resourceId: resource.id(),
-                  actionName: "list",
-                }),
-                notice: {
-                  message: "Order has been successfully shipped!",
-                  type: "success",
-                },
-              };
-            },
-          },
-        },
-        edit: {
-          isAccessible: ({ currentAdmin }) =>
-            canManage(currentAdmin?.role, "Order"),
         },
       },
     },
   ],
 });
+
+if (process.env.NODE_ENV === "production") {
+  adminJs.initialize().then(() => {
+    console.log("AdminJS bundled and initialized for production");
+  });
+}
 
 export default adminJs;

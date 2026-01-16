@@ -27,7 +27,6 @@ const BackendUrl = appContext?.BackendUrl;
       try {
         const res = await axios.get(BackendUrl+"/api/ad/fetch-ad");
 
-        // Axios automatically parses JSON → res.data
         const filtered = res.data.filter(
           (item: Ads) => item.section === sectionNumber
         );
