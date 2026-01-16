@@ -46,15 +46,12 @@ export default function ProductSection({
   useEffect(() => {
     async function fetchProduct() {
       try {
-        const res = await axios.get(BackendUr+"/api/products");
+        const res = await axios.get(BackendUr+"/api/product/fetch-product",{params:{
+          section: section,
+          sectionName: sectionName
+        }});
         
-
-        // ✅ Filter products by subCategory
-        const filtered = res.data.filter(
-          (item: Product) => item[section] === sectionName
-        );
-
-        setProduct(filtered);
+        setProduct(res.data);
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {setLoading(false)}
@@ -62,7 +59,7 @@ export default function ProductSection({
     }
 
     fetchProduct();
-  }, [section, sectionName]);
+  }, [section, sectionName,BackendUr]);
   if(!appContext){
     return null;
   }

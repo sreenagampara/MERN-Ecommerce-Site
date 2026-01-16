@@ -1,5 +1,22 @@
 import Product from "../models/productModel.js";
 
+export const fetchProduct = async (req,res)=>{
+  try {
+      const {section,sectionName}=req.query;
+  
+      let query={};
+      if(section && sectionName){
+        query[section]=sectionName;
+      }
+  
+      const products = await Product.find(query);
+      res.status(200).json(products);
+    } catch (error) {
+      console.error("error fetching products details", error);
+      res.status(500).json({ message: "error fetching products" });
+    }
+}
+
 export const searchProducts = async (req, res) => {
   try {
     const {

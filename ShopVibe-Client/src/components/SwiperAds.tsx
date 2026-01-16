@@ -27,7 +27,7 @@ export default function AdBlock() {
   useEffect(() => {
     async function fetchAds() {
       try {
-        const res = await axios(BackendUrl+"/api/ads");
+        const res = await axios(BackendUrl+"/api/ad/fetch-ad");
       
         setAds(res.data);
       } catch (error) {

@@ -14,9 +14,8 @@ import MongoStore from "connect-mongo";
 import AdminJSExpress from "@adminjs/express";
 import adminJs from "./admin/admin.js";
 import { authenticate } from "./admin/adminAuth.js";
-import Product from "./models/productModel.js"
-import Ad from "./models/adModel.js"
 import uploadRouter from "./routes/uploadRoutes.js";
+import adRoutes from "./routes/adRoutes.js";
 
 
 dotenv.config();
@@ -24,6 +23,7 @@ const app = express();
 const PORT = process.env.PORT||500;
 const MONGODB_URL = process.env.MONGODB_URL;
 const FRONT_END_URL =process.env.FRONT_END_URL;
+
 
 
 // ------------------ CORS ------------------
@@ -80,6 +80,7 @@ app.use("/api/payment", paymentRouter);
 app.use("/api/order",ordertRouter);
 app.use("/api/product",producRouter);
 app.use("/api/upload",uploadRouter)
+app.use("/api/ad",adRoutes)
 
 
 // ------------------ SIMPLE ENDPOINTS ------------------
@@ -88,35 +89,6 @@ app.get("/", (req, res) => {
   res.send(`<h1>Server is running on the port 5000<h1>`);
 });
 
-
-
-
-// ------------------ ADS & PRODUCTS MOCK ------------------
-
-
-//const adSchema = new mongoose.Schema({}, { string: false });
-//const ad = mongoose.model("ad", adSchema, "ads");
-app.get("/api/ads", async (req, res) => {
-  try {
-    const ads = await Ad.find();
-    res.status(200).json(ads);
-  } catch (err) {
-    console.error("error fetching this ads", err);
-    res.status(500).json({ message: "error fetching ads" });
-  }
-});
-
-
-//const product = mongoose.model("Product", productSchema, "Products");
-app.get("/api/products", async (req, res) => {
-  try {
-    const products = await Product.find();
-    res.status(200).json(products);
-  } catch (error) {
-    console.error("error fetching products details", error);
-    res.status(500).json({ message: "error fetching products" });
-  }
-});
 
 // ------------------ MONGODB CONNECTION ------------------
 

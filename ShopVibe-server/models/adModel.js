@@ -1,5 +1,4 @@
-import mongoose, { model } from "mongoose";
-import { type } from "os";
+import mongoose from "mongoose";
 
 const adSchema = new mongoose.Schema(
     {

@@ -25,7 +25,7 @@ const BackendUrl = appContext?.BackendUrl;
     if(!BackendUrl) return;
     async function fetchAdsCard() {
       try {
-        const res = await axios.get(BackendUrl+"/api/ads");
+        const res = await axios.get(BackendUrl+"/api/ad/fetch-ad");
 
         // Axios automatically parses JSON → res.data
         const filtered = res.data.filter(
