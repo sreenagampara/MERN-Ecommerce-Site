@@ -47,6 +47,10 @@ app.use(cookieParser());
 
 // ------------------ ADMINJS SESSION ------------------
 
+// ------------------ PROXY TRUST ------------------
+// Required for Render/Heroku SSL termination
+app.set('trust proxy', 1);
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -55,6 +59,11 @@ app.use(
     store: MongoStore.create({
       mongoUrl: process.env.MONGODB_URL,
     }),
+    cookie: {
+      secure: process.env.NODE_ENV === 'production', // true on Render
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    }
   })
 );
 
