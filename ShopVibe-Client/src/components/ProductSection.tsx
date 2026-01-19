@@ -49,7 +49,7 @@ export default function ProductSection({
         const res = await axios.get(BackendUr+"/api/products");
         
 
-        // ✅ Filter products by subCategory
+        
         const filtered = res.data.filter(
           (item: Product) => item[section] === sectionName
         );
