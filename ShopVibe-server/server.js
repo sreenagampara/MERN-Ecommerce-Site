@@ -21,17 +21,17 @@ import uploadRouter from "./routes/uploadRoutes.js";
 
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT||500;
+const PORT = process.env.PORT || 500;
 const MONGODB_URL = process.env.MONGODB_URL;
-const FRONT_END_URL =process.env.FRONT_END_URL;
+const FRONT_END_URL = process.env.FRONT_END_URL;
 
 
 // ------------------ CORS ------------------
 
 app.use(
   cors({
-    
-    origin:FRONT_END_URL,
+
+    origin: FRONT_END_URL,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -77,9 +77,9 @@ app.use("/api/auth", authRouter);
 app.use("/api/user", userRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/payment", paymentRouter);
-app.use("/api/order",ordertRouter);
-app.use("/api/product",producRouter);
-app.use("/api/upload",uploadRouter)
+app.use("/api/order", ordertRouter);
+app.use("/api/product", producRouter);
+app.use("/api/upload", uploadRouter)
 
 
 // ------------------ SIMPLE ENDPOINTS ------------------
@@ -98,7 +98,12 @@ app.get("/", (req, res) => {
 //const ad = mongoose.model("ad", adSchema, "ads");
 app.get("/api/ads", async (req, res) => {
   try {
-    const ads = await Ad.find();
+    const { section, division } = req.query;
+    const filter = {};
+    if (section) filter.section = section;
+    if (division) filter.division = division;
+
+    const ads = await Ad.find(filter);
     res.status(200).json(ads);
   } catch (err) {
     console.error("error fetching this ads", err);
@@ -110,7 +115,12 @@ app.get("/api/ads", async (req, res) => {
 //const product = mongoose.model("Product", productSchema, "Products");
 app.get("/api/products", async (req, res) => {
   try {
-    const products = await Product.find();
+    const query = { ...req.query };
+    // Exclude pagination/sorting fields if any (though currently the simple endpoint doesn't support them, cleaning is good practice)
+    const excludedFields = ["page", "sort", "limit", "fields"];
+    excludedFields.forEach((el) => delete query[el]);
+
+    const products = await Product.find(query);
     res.status(200).json(products);
   } catch (error) {
     console.error("error fetching products details", error);
@@ -125,9 +135,9 @@ async function AdsDataBase() {
     await mongoose.connect(MONGODB_URL, { dbName: "ShopVibe" });
     console.log("Monogo Db is woking");
     app.listen(PORT, "0.0.0.0", () => {
-      console.log("server running the port :",PORT);
+      console.log("server running the port :", PORT);
     });
-  } 
+  }
   catch (error) {
     console.log("error message", error);
     process.exit(1);

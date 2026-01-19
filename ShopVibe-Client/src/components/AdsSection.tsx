@@ -8,7 +8,7 @@ import { AppContext } from "../context/AppContextInstance";
 interface Ads {
   imageUrl: string;
   section: string;
-  division:string;
+  division: string;
 }
 
 interface AdsSectionProps {
@@ -16,23 +16,22 @@ interface AdsSectionProps {
 }
 
 export default function AdsSection({ sectionNumber }: AdsSectionProps) {
-    const appContext = useContext(AppContext)
+  const appContext = useContext(AppContext)
   const [ad, setAd] = useState<Ads[]>([]);
-const BackendUrl = appContext?.BackendUrl;
+  const BackendUrl = appContext?.BackendUrl;
 
-  
+
   useEffect(() => {
-    if(!BackendUrl) return;
+    if (!BackendUrl) return;
     async function fetchAdsCard() {
       try {
-        const res = await axios.get(BackendUrl+"/api/ads");
+        // Pass filtering params to the backend
+        const res = await axios.get(`${BackendUrl}/api/ads`, {
+          params: { section: sectionNumber }
+        });
 
-        // Axios automatically parses JSON → res.data
-        const filtered = res.data.filter(
-          (item: Ads) => item.section === sectionNumber
-        );
-
-        setAd(filtered);
+        // No client-side filtering needed anymore
+        setAd(res.data);
       } catch (error) {
         console.error("Error fetching ads:", error);
       }
@@ -41,7 +40,7 @@ const BackendUrl = appContext?.BackendUrl;
     fetchAdsCard();
   }, [BackendUrl, sectionNumber]);
 
-  if(!appContext) {
+  if (!appContext) {
     return null;
   }
 

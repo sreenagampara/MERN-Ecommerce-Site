@@ -10,7 +10,7 @@ export interface Product {
   subCategory: string;
   category: string;
   division: string;
-  _id:number;
+  _id: number;
 }
 
 interface ProductSectionProps {
@@ -46,24 +46,21 @@ export default function ProductSection({
   useEffect(() => {
     async function fetchProduct() {
       try {
-        const res = await axios.get(BackendUr+"/api/products");
-        
+        // Pass dynamic filtering parameters to the backend
+        const res = await axios.get(`${BackendUr}/api/products`, {
+          params: { [section]: sectionName }
+        });
 
-        
-        const filtered = res.data.filter(
-          (item: Product) => item[section] === sectionName
-        );
-
-        setProduct(filtered);
+        setProduct(res.data);
       } catch (error) {
         console.error("Error fetching products:", error);
-      } finally {setLoading(false)}
-      
+      } finally { setLoading(false) }
+
     }
 
     fetchProduct();
   }, [section, sectionName]);
-  if(!appContext){
+  if (!appContext) {
     return null;
   }
 
@@ -73,13 +70,13 @@ export default function ProductSection({
         {sectionName}
       </h2>
 
-      {loading ? (<h3 className="text-center py-5 text-gray-500 font-semibold sm:text-2 lg:text-3xl sm:h-50 lg:h-500">Loading products...</h3>) 
-      :( <div className={`grid gap-4 grid-cols-2 sm:grid-cols-2 ${mdCols} ${lgCols}`}>
-        {product.map((item, index) => (
-          <ProductCard key={index} product={item} />
-        ))}
-      </div>
-      )}
+      {loading ? (<h3 className="text-center py-5 text-gray-500 font-semibold sm:text-2 lg:text-3xl sm:h-50 lg:h-500">Loading products...</h3>)
+        : (<div className={`grid gap-4 grid-cols-2 sm:grid-cols-2 ${mdCols} ${lgCols}`}>
+          {product.map((item, index) => (
+            <ProductCard key={index} product={item} />
+          ))}
+        </div>
+        )}
     </div>
   );
 }

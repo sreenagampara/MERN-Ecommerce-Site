@@ -9,11 +9,11 @@ import { useNavigate } from "react-router-dom";
 import { AppContext } from "../context/AppContextInstance";
 
 interface Ads {
-  adsName:string,
-  _id:string,
+  adsName: string,
+  _id: string,
   imageUrl: string;
   section: string;
-  division:string;
+  division: string;
 }
 export default function AdBlock() {
   const progressRef = useRef<HTMLDivElement | null>(null);
@@ -21,14 +21,15 @@ export default function AdBlock() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const appContext = useContext(AppContext)
-  const BackendUrl =appContext?.BackendUrl
-  
+  const BackendUrl = appContext?.BackendUrl
+
 
   useEffect(() => {
     async function fetchAds() {
       try {
-        const res = await axios(BackendUrl+"/api/ads");
-      
+        // Fetch only ads for section 1
+        const res = await axios(`${BackendUrl}/api/ads?section=1`);
+
         setAds(res.data);
       } catch (error) {
         console.error("Error fetching ads", error);
@@ -39,11 +40,12 @@ export default function AdBlock() {
     fetchAds();
   }, [BackendUrl]);
 
-  const sectionOneAds = ads.filter((ad) => ad.section === "1");
+  // The API now returns only the relevant ads, so we use them directly
+  const sectionOneAds = ads;
   const enableLoop = sectionOneAds.length > 1;
 
 
-  if(!appContext){
+  if (!appContext) {
     return null;
   }
 
@@ -78,10 +80,12 @@ export default function AdBlock() {
                 src={ad.imageUrl}
                 alt={ad.adsName}
                 className="w-full sm:h-70 md:h-80 lg:h-90 object-cover rounded-lg"
-                onClick={()=>{
-                  navigate("/offer-page",{state:{
-                    sectionName:ad.division
-                  }})
+                onClick={() => {
+                  navigate("/offer-page", {
+                    state: {
+                      sectionName: ad.division
+                    }
+                  })
                 }}
               />
             </SwiperSlide>
