@@ -72,6 +72,11 @@ const adminRouter = AdminJSExpress.buildAuthenticatedRouter(
 
 app.use(adminJs.options.rootPath, adminRouter);
 
+
+if (process.env.NODE_ENV === 'production') {
+  app.use('/admin/frontend/assets', express.static(path.join(__dirname, '.adminjs/bundle')));
+}
+
 // ------------------ BODY PARSERS ------------------
 
 app.use(express.json());

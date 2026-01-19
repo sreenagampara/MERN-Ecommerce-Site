@@ -32,7 +32,7 @@ componentLoader.add(
 
 const adminJs = new AdminJS({
   componentLoader,
-  
+
   branding: {
     companyName: "ShopVibe Admin",
     softwareBrothers: false,
@@ -45,6 +45,11 @@ const adminJs = new AdminJS({
     },
   },
   rootPath: "/admin",
+  
+  assets: {
+    process: process.env.NODE_ENV === 'production' ? false : true, 
+  },
+
   locale: {
     translations: {
       labels: {
