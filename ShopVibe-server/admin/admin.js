@@ -1,6 +1,5 @@
 import AdminJS, { ComponentLoader } from "adminjs";
 import * as AdminJSMongoose from "@adminjs/mongoose";
-import cloudinary from "../config/cloudinary.js";
 import Product from "../models/productModel.js";
 import User from "../models/userModel.js";
 import Order from "../models/orderModel.js";
@@ -25,7 +24,11 @@ const __dirname = path.dirname(__filename);
 
 AdminJS.registerAdapter(AdminJSMongoose);
 const componentLoader = new ComponentLoader();
-const FILE_UPLOAD_COMPONENT = componentLoader.add('FileUpload', path.join(__dirname, "../components/FileUpload.jsx"))
+componentLoader.add(
+  "FileUpload",
+  path.join(__dirname, "../components/FileUpload.jsx")
+);
+
 
 const adminJs = new AdminJS({
   componentLoader,
@@ -64,7 +67,7 @@ const adminJs = new AdminJS({
             type: "file",
             isVirtual: true,
             isVisible: { list: false, edit: true, new: true, show: false },
-            components: { edit: FILE_UPLOAD_COMPONENT },
+            components: { edit: "FileUpload" },
           },
 
           imageUrl: {
@@ -170,7 +173,7 @@ const adminJs = new AdminJS({
             isVirtual: true,
             isVisible: { list: false, edit: true, new: true, show: false, },
             label: "Ad image",
-            components: { edit: FILE_UPLOAD_COMPONENT }
+            components: { edit: "FileUpload" },
           },
           imageUrl: { isVisible: { list: true, edit: false, show: true } },
         },
