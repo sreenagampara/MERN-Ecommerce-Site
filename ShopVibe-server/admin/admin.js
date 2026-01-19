@@ -32,6 +32,7 @@ componentLoader.add(
 
 const adminJs = new AdminJS({
   componentLoader,
+  bundlePath: path.join(__dirname, "../.adminjs"),
   branding: {
     companyName: "ShopVibe Admin",
     softwareBrothers: false,

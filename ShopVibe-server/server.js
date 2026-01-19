@@ -17,6 +17,12 @@ import { authenticate } from "./admin/adminAuth.js";
 import Product from "./models/productModel.js"
 import Ad from "./models/adModel.js"
 import uploadRouter from "./routes/uploadRoutes.js";
+import path from "path";
+import { fileURLToPath } from "url";
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 
 dotenv.config();
@@ -52,6 +58,14 @@ app.use(
     }),
   })
 );
+
+// SERVE ADMINJS FRONTEND BUNDLE
+
+app.use(
+  "/admin/frontend",
+  express.static(path.join(__dirname, ".adminjs/frontend"))
+);
+
 
 // ------------------ ADMINJS ROUTER ------------------
 
