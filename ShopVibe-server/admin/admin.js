@@ -25,7 +25,7 @@ const __dirname = path.dirname(__filename);
 
 AdminJS.registerAdapter(AdminJSMongoose);
 const componentLoader = new ComponentLoader();
-const FILE_UPLOAD_COMPONENT = componentLoader.add('FileUpload',path.join(__dirname,"../components/FileUpload.jsx"))
+const FILE_UPLOAD_COMPONENT = componentLoader.add('FileUpload', path.join(__dirname, "../components/FileUpload.jsx"))
 
 const adminJs = new AdminJS({
   componentLoader,
@@ -40,6 +40,7 @@ const adminJs = new AdminJS({
       },
     },
   },
+  assetsCDN: process.env.NODE_ENV === 'production' ? '/admin/frontend' : undefined,
   rootPath: "/admin",
   locale: {
     translations: {
@@ -64,13 +65,13 @@ const adminJs = new AdminJS({
             type: "file",
             isVirtual: true,
             isVisible: { list: false, edit: true, new: true, show: false },
-            components:{edit:FILE_UPLOAD_COMPONENT},
+            components: { edit: FILE_UPLOAD_COMPONENT },
           },
 
           imageUrl: {
             isVisible: { list: true, edit: false, show: true },
           },
-          
+
         },
 
         actions: {
@@ -80,18 +81,18 @@ const adminJs = new AdminJS({
               canManage(currentAdmin?.role, "Product"),
             before: async (request) => {
               if (request.payload?.imageFile) {
-                const {path,name,type} = request.payload.imageFile;
+                const { path, name, type } = request.payload.imageFile;
 
                 const formData = new FormData();
                 formData.append("image", fs.createReadStream(path),
-             {
-              filename:name,
-              contentType:type,
-             }
-              );
+                  {
+                    filename: name,
+                    contentType: type,
+                  }
+                );
 
                 const responce = await axios.post(
-                 BACK_END_URL+"/api/upload/upload-product-image",
+                  BACK_END_URL + "/api/upload/upload-product-image",
                   formData,
                   {
                     headers: formData.getHeaders()
@@ -110,27 +111,27 @@ const adminJs = new AdminJS({
           },
 
           edit: {
-            formidable:true,
+            formidable: true,
             isAccessible: ({ currentAdmin }) =>
               canManage(currentAdmin?.role, "Product"),
-            before:async(request)=>{
-              if(request.payload?.imageFile){
-                const{path,name,type}=request.payload.imageFile;
-                
-                const formData=new FormData();
+            before: async (request) => {
+              if (request.payload?.imageFile) {
+                const { path, name, type } = request.payload.imageFile;
+
+                const formData = new FormData();
                 formData.append(
                   "image",
                   fs.createReadStream(path),
                   {
-                    filename:name,
-                    contentType:type,
+                    filename: name,
+                    contentType: type,
                   }
                 );
-                const response=await axios.post(BACK_END_URL+"/api/upload/upload-product-image",
+                const response = await axios.post(BACK_END_URL + "/api/upload/upload-product-image",
                   formData,
-                  {headers:formData.getHeaders()}
+                  { headers: formData.getHeaders() }
                 );
-                request.payload.imageUrl=response.data.imageUrl;
+                request.payload.imageUrl = response.data.imageUrl;
                 delete request.payload.imageFile;
               }
               return request;
@@ -168,9 +169,9 @@ const adminJs = new AdminJS({
           adImage: {
             type: "file",
             isVirtual: true,
-            isVisible: { list: false, edit: true, new: true,  show: false, },
+            isVisible: { list: false, edit: true, new: true, show: false, },
             label: "Ad image",
-            components:{edit:FILE_UPLOAD_COMPONENT}
+            components: { edit: FILE_UPLOAD_COMPONENT }
           },
           imageUrl: { isVisible: { list: true, edit: false, show: true } },
         },
@@ -189,16 +190,16 @@ const adminJs = new AdminJS({
               canManage(currentAdmin?.role, "Ad"),
             before: async (request) => {
               if (request.payload?.adImage) {
-                const {path,name,type} = request.payload.adImage;
+                const { path, name, type } = request.payload.adImage;
 
                 const formData = new FormData();
-                formData.append("image", fs.createReadStream(path),{
-                  filename:name,
-                  contentType:type,
+                formData.append("image", fs.createReadStream(path), {
+                  filename: name,
+                  contentType: type,
                 });
 
                 const responce = await axios.post(
-                  BACK_END_URL+"/api/upload/upload-ad-image",
+                  BACK_END_URL + "/api/upload/upload-ad-image",
                   formData,
                   {
                     headers: formData.getHeaders()
@@ -219,30 +220,30 @@ const adminJs = new AdminJS({
             formidable: true,
             isAccessible: ({ currentAdmin }) =>
               canManage(currentAdmin?.role, "Ad"),
-            before:async(request)=>{
-                if (request.payload?.adImage) {
-              const{path,name,type}=request.payload.adImage;
+            before: async (request) => {
+              if (request.payload?.adImage) {
+                const { path, name, type } = request.payload.adImage;
 
-              const formData=new FormData();
-              formData.append(
-                "image",
-                fs.createReadStream(path),
-                {
-                  filename:name,
-                  contentType:type,
-                }
-              );
+                const formData = new FormData();
+                formData.append(
+                  "image",
+                  fs.createReadStream(path),
+                  {
+                    filename: name,
+                    contentType: type,
+                  }
+                );
 
-              const responce=await axios.post(
-                 BACK_END_URL+"/api/upload/upload-ad-image",
-                 formData,
-                 {headers:formData.getHeaders()}
-              );
+                const responce = await axios.post(
+                  BACK_END_URL + "/api/upload/upload-ad-image",
+                  formData,
+                  { headers: formData.getHeaders() }
+                );
 
-              request.payload.imageUrl=responce.data.imageUrl;
-              delete request.payload.adImage;
-            }
-            return request;
+                request.payload.imageUrl = responce.data.imageUrl;
+                delete request.payload.adImage;
+              }
+              return request;
             }
           },
           delete: {
