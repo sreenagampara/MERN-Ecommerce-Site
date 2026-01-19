@@ -59,13 +59,6 @@ app.use(
   })
 );
 
-// SERVE ADMINJS FRONTEND BUNDLE
-
-app.use(
-  "/admin/frontend",
-  express.static(path.join(__dirname, ".adminjs/frontend"))
-);
-
 
 // ------------------ ADMINJS ROUTER ------------------
 
