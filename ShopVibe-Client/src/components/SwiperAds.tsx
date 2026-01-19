@@ -27,8 +27,7 @@ export default function AdBlock() {
   useEffect(() => {
     async function fetchAds() {
       try {
-        // Fetch only ads for section 1
-        const res = await axios(`${BackendUrl}/api/ads?section=1`);
+        const res = await axios(BackendUrl + "/api/ads");
 
         setAds(res.data);
       } catch (error) {
@@ -40,8 +39,7 @@ export default function AdBlock() {
     fetchAds();
   }, [BackendUrl]);
 
-  // The API now returns only the relevant ads, so we use them directly
-  const sectionOneAds = ads;
+  const sectionOneAds = ads.filter((ad) => ad.section === "1");
   const enableLoop = sectionOneAds.length > 1;
 
 

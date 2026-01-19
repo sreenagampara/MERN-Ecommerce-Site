@@ -40,7 +40,6 @@ const adminJs = new AdminJS({
       },
     },
   },
-  assetsCDN: process.env.NODE_ENV === 'production' ? '/admin/frontend' : undefined,
   rootPath: "/admin",
   locale: {
     translations: {

@@ -17,16 +17,11 @@ import { authenticate } from "./admin/adminAuth.js";
 import Product from "./models/productModel.js"
 import Ad from "./models/adModel.js"
 import uploadRouter from "./routes/uploadRoutes.js";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 
 dotenv.config();
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 500;
 const MONGODB_URL = process.env.MONGODB_URL;
 const FRONT_END_URL = process.env.FRONT_END_URL;
 
@@ -47,10 +42,6 @@ app.use(cookieParser());
 
 // ------------------ ADMINJS SESSION ------------------
 
-// ------------------ PROXY TRUST ------------------
-// Required for Render/Heroku SSL termination
-app.set('trust proxy', 1);
-
 app.use(
   session({
     secret: process.env.SESSION_SECRET,
@@ -59,11 +50,6 @@ app.use(
     store: MongoStore.create({
       mongoUrl: process.env.MONGODB_URL,
     }),
-    cookie: {
-      secure: process.env.NODE_ENV === 'production', // true on Render
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 1 day
-    }
   })
 );
 
@@ -76,11 +62,6 @@ const adminRouter = AdminJSExpress.buildAuthenticatedRouter(
     cookiePassword: process.env.ADMIN_COOKIE_SECRET,
   },
 );
-
-if (process.env.NODE_ENV === 'production') {
-  const adminAssetsDir = path.join(__dirname, '.adminjs');
-  adminRouter.use('/frontend', express.static(adminAssetsDir));
-}
 
 app.use(adminJs.options.rootPath, adminRouter);
 
@@ -117,10 +98,10 @@ app.get("/", (req, res) => {
 //const ad = mongoose.model("ad", adSchema, "ads");
 app.get("/api/ads", async (req, res) => {
   try {
-    const { section, division } = req.query;
+    const { division, section } = req.query;
     const filter = {};
-    if (section) filter.section = section;
     if (division) filter.division = division;
+    if (section) filter.section = section;
 
     const ads = await Ad.find(filter);
     res.status(200).json(ads);
@@ -134,12 +115,60 @@ app.get("/api/ads", async (req, res) => {
 //const product = mongoose.model("Product", productSchema, "Products");
 app.get("/api/products", async (req, res) => {
   try {
-    const query = { ...req.query };
-    // Exclude pagination/sorting fields if any (though currently the simple endpoint doesn't support them, cleaning is good practice)
-    const excludedFields = ["page", "sort", "limit", "fields"];
-    excludedFields.forEach((el) => delete query[el]);
+    const {
+      q,
+      category,
+      division,
+      subCategory,
+      minPrice,
+      maxPrice,
+      page,
+      limit
+    } = req.query;
 
-    const products = await Product.find(query);
+    const filter = {};
+
+    if (q && q.trim()) {
+      filter.$text = { $search: q };
+    }
+    if (category) filter.category = category;
+    if (subCategory) filter.subCategory = subCategory;
+    if (division) filter.division = division;
+
+    // Price filtering
+    if (minPrice || maxPrice) {
+      filter.$expr = {
+        $and: [
+          minPrice
+            ? { $gte: [{ $toDouble: "$price" }, Number(minPrice)] }
+            : { $gte: [{ $toDouble: "$price" }, 0] },
+          maxPrice
+            ? { $lte: [{ $toDouble: "$price" }, Number(maxPrice)] }
+            : { $lte: [{ $toDouble: "$price" }, 99999999] }
+        ]
+      };
+    }
+
+    // Pagination helper if user sends page/limit
+    // If no page/limit sent, we default to returning all (or maybe strict limit to avoid crash)
+    // For now, if no limit is sent, we just return the found documents to match previous behavior 
+    // but with filters applied.
+
+    let query = Product.find(filter, q ? { score: { $meta: "textScore" } } : {});
+
+    if (q) {
+      query = query.sort({ score: { $meta: "textScore" } });
+    } else {
+      query = query.sort({ createdAt: -1 });
+    }
+
+    if (page && limit) {
+      const pageNum = Number(page) || 1;
+      const limitNum = Number(limit) || 10;
+      query = query.skip((pageNum - 1) * limitNum).limit(limitNum);
+    }
+
+    const products = await query;
     res.status(200).json(products);
   } catch (error) {
     console.error("error fetching products details", error);

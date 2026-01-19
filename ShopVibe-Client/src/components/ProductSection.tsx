@@ -46,12 +46,15 @@ export default function ProductSection({
   useEffect(() => {
     async function fetchProduct() {
       try {
-        // Pass dynamic filtering parameters to the backend
-        const res = await axios.get(`${BackendUr}/api/products`, {
-          params: { [section]: sectionName }
-        });
+        const res = await axios.get(BackendUr + "/api/products");
 
-        setProduct(res.data);
+
+
+        const filtered = res.data.filter(
+          (item: Product) => item[section] === sectionName
+        );
+
+        setProduct(filtered);
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally { setLoading(false) }

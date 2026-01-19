@@ -25,13 +25,14 @@ export default function AdsSection({ sectionNumber }: AdsSectionProps) {
     if (!BackendUrl) return;
     async function fetchAdsCard() {
       try {
-        // Pass filtering params to the backend
-        const res = await axios.get(`${BackendUrl}/api/ads`, {
-          params: { section: sectionNumber }
-        });
+        const res = await axios.get(BackendUrl + "/api/ads");
 
-        // No client-side filtering needed anymore
-        setAd(res.data);
+        // Axios automatically parses JSON → res.data
+        const filtered = res.data.filter(
+          (item: Ads) => item.section === sectionNumber
+        );
+
+        setAd(filtered);
       } catch (error) {
         console.error("Error fetching ads:", error);
       }
