@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
-import { FiPlus, FiEdit, FiTrash2, FiShield } from "react-icons/fi";
+import { FiPlus, FiEdit, FiTrash2 } from "react-icons/fi";
 
 const BackendUrl = import.meta.env.VITE_BACKEND_URL as string;
 

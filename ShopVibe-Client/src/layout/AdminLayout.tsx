@@ -1,6 +1,6 @@
-import { Outlet, Navigate, Link, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, Navigate, Link, useLocation } from "react-router-dom";
 import { useAdmin } from "../context/AdminContext";
-import { FiHome, FiBox, FiShoppingCart, FiUsers, FiLogOut, FiImage, FiShield, FiLayout } from "react-icons/fi";
+import { FiHome, FiBox, FiShoppingCart, FiUsers, FiLogOut, FiImage, FiShield } from "react-icons/fi";
 import React from "react";
 
 const SidebarLink = ({ to, icon, label, currentPath }: { to: string, icon: React.ReactNode, label: string, currentPath: string }) => (
