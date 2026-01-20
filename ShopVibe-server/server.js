@@ -9,16 +9,17 @@ import cartRouter from "./routes/cartRoutes.js";
 import paymentRouter from "./routes/paymentRoutes.js";
 import ordertRouter from "./routes/orderRoutes.js";
 import producRouter from "./routes/productRoutes.js";
-import session from "express-session";
-import MongoStore from "connect-mongo";
-import AdminJSExpress from "@adminjs/express";
-import adminJs from "./admin/admin.js";
-import { authenticate } from "./admin/adminAuth.js";
-import Product from "./models/productModel.js"
-import Ad from "./models/adModel.js"
-import uploadRouter from "./routes/uploadRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
+
+
 import path from "path";
 import { fileURLToPath } from "url";
+
+import Product from "./models/productModel.js"
+import Ad from "./models/adModel.js"
+import { seedAdmin } from "./scripts/seedAdmin.js";
+
+
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -36,41 +37,29 @@ const FRONT_END_URL = process.env.FRONT_END_URL;
 
 app.use(
   cors({
-
-    origin: FRONT_END_URL,
+    origin: [FRONT_END_URL],
     credentials: true,
+
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 app.use(cookieParser());
 
+app.use((req, res, next) => {
+  if (req.url.startsWith('/admin')) {
+    console.log(`[Request] ${req.method} ${req.url}`);
+    if (req.files) console.log('[Request] Files:', Object.keys(req.files));
+    // Simple body log
+    console.log('[Request] Body keys:', Object.keys(req.body || {}));
+  }
+  next();
+});
+
 
 // ------------------ ADMINJS SESSION ------------------
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({
-      mongoUrl: process.env.MONGODB_URL,
-    }),
-  })
-);
 
-
-// ------------------ ADMINJS ROUTER ------------------
-
-const adminRouter = AdminJSExpress.buildAuthenticatedRouter(
-  adminJs,
-  {
-    authenticate,
-    cookiePassword: process.env.ADMIN_COOKIE_SECRET,
-  },
-);
-
-app.use(adminJs.options.rootPath, adminRouter);
 
 
 if (process.env.NODE_ENV === 'production') {
@@ -91,7 +80,8 @@ app.use("/api/cart", cartRouter);
 app.use("/api/payment", paymentRouter);
 app.use("/api/order", ordertRouter);
 app.use("/api/product", producRouter);
-app.use("/api/upload", uploadRouter)
+app.use("/api/admin", adminRoutes);
+
 
 
 // ------------------ SIMPLE ENDPOINTS ------------------
@@ -106,8 +96,6 @@ app.get("/", (req, res) => {
 // ------------------ ADS & PRODUCTS MOCK ------------------
 
 
-//const adSchema = new mongoose.Schema({}, { string: false });
-//const ad = mongoose.model("ad", adSchema, "ads");
 app.get("/api/ads", async (req, res) => {
   try {
     const { division, section } = req.query;
@@ -124,7 +112,6 @@ app.get("/api/ads", async (req, res) => {
 });
 
 
-//const product = mongoose.model("Product", productSchema, "Products");
 app.get("/api/products", async (req, res) => {
   try {
     const {
@@ -161,10 +148,6 @@ app.get("/api/products", async (req, res) => {
       };
     }
 
-    // Pagination helper if user sends page/limit
-    // If no page/limit sent, we default to returning all (or maybe strict limit to avoid crash)
-    // For now, if no limit is sent, we just return the found documents to match previous behavior 
-    // but with filters applied.
 
     let query = Product.find(filter, q ? { score: { $meta: "textScore" } } : {});
 
@@ -194,6 +177,7 @@ async function AdsDataBase() {
   try {
     await mongoose.connect(MONGODB_URL, { dbName: "ShopVibe" });
     console.log("Monogo Db is woking");
+    await seedAdmin();
     app.listen(PORT, "0.0.0.0", () => {
       console.log("server running the port :", PORT);
     });
